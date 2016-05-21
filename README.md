@@ -52,6 +52,7 @@ C\lib\openssl
         └─VC
             └─static
 ```
+
 ## boost
 http://www.boost.org/users/history/version_1_61_0.html
 download boost_1_61_0.7z( or zip) and unzip somewhere.
@@ -67,6 +68,55 @@ http://www.bzip.org/downloads.html
 ### check directory tree
 
 ```
+C:\lib
+├─boost_1_61_0
+│  ├─boost
+│  ├─doc
+│  ├─libs
+│  ├─more
+│  ├─status
+│  └─tools
+├─bzip2-1.0.6
+├─openssl
+│  ├─OpenSSL-Win32
+│  │  ├─bin
+│  │  │  └─PEM
+│  │  │      ├─demoCA
+│  │  │      │  └─private
+│  │  │      └─set
+│  │  ├─exp
+│  │  ├─include
+│  │  │  └─openssl
+│  │  └─lib
+│  │      ├─MinGW
+│  │      └─VC
+│  │          └─static
+│  └─OpenSSL-Win64
+│      ├─bin
+│      │  └─PEM
+│      │      ├─demoCA
+│      │      │  └─private
+│      │      └─set
+│      ├─exp
+│      ├─include
+│      │  └─openssl
+│      └─lib
+│          └─VC
+│              └─static
+└─zlib-1.2.8
+   ├─amiga
+   ├─as400
+   ├─contrib
+   ├─doc
+   ├─examples
+   ├─msdos
+   ├─nintendods
+   ├─old
+   │  └─os2
+   ├─qnx
+   ├─test
+   ├─watcom
+   └─win32
 ```
 
 Please modify script below when you do different tree.
