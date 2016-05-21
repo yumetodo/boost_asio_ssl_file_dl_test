@@ -52,11 +52,33 @@ C\lib\openssl
         └─VC
             └─static
 ```
+## boost
+http://www.boost.org/users/history/version_1_61_0.html
+download boost_1_61_0.7z( or zip) and unzip somewhere.
 
-## zlib
+### zlib
 http://zlib.net/
 
-1. Download ``zlib-1.2.8.tar.xz`` and unzip and move directories to somewhere you like that is not include space in path.
+1. Download ``zlib-1.2.8.tar.xz`` and unzip somewhere.
 
-## lib
+### libbzip2
 http://www.bzip.org/downloads.html
+
+### check directory tree
+
+```
+```
+
+Please modify script below when you do different tree.
+
+### boost build
+1. Download ``bzip2-1.0.6.tar.gz`` and unzip somewhere.
+2. run this script at Boost root directory.
+
+```
+bootstrap.bat
+b2 toolset=msvc threading=multi variant=debug,release link=static runtime-link=static address-model=32 --stagedir=stage/x86 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
+b2 toolset=msvc threading=multi variant=debug,release link=shared runtime-link=shared address-model=32 --stagedir=stage/x86 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
+b2 toolset=msvc threading=multi variant=debug,release link=static runtime-link=static address-model=64 --stagedir=stage/x64 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
+b2 toolset=msvc threading=multi variant=debug,release link=shared runtime-link=shared address-model=64 --stagedir=stage/x64 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
+````
