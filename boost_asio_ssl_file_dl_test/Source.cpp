@@ -1,4 +1,4 @@
-#if !defined( WINVER ) || ( WINVER < 0x0501 )
+ï»¿#if !defined( WINVER ) || ( WINVER < 0x0501 )
 #undef  WINVER
 #define WINVER 0x0501
 #endif
@@ -14,10 +14,18 @@
 #include <algorithm>
 #include <boost/asio.hpp>
 #include <boost/asio/ssl.hpp>
+#if defined _MSC_VER && !defined(__clang__)
+#pragma warning( push )
+//C:\lib\boost_1_61_0\boost/iostreams/copy.hpp(128): warning C4244: 'å¼•æ•°': 'std::streamsize' ã‹ã‚‰ 'int' ã¸ã®å¤‰æ›ã§ã™ã€‚ãƒ‡ãƒ¼ã‚¿ãŒå¤±ã‚ã‚Œã‚‹å¯èƒ½æ€§ãŒã‚ã‚Šã¾ã™ã€‚
+#pragma warning( disable : 4244 )
+#endif
 #include <boost/iostreams/filtering_streambuf.hpp>
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#if defined _MSC_VER && !defined(__clang__)
+#pragma warning( pop ) 
+#endif
 #include <boost/algorithm/cxx11/none_of.hpp>
 #include <boost/optional.hpp>
 namespace asio_dl_impl {
@@ -236,11 +244,11 @@ public:
 		asio_dl_impl::connet(ssl_stream.lowest_layer(), io_service, server_name, "https");
 		ssl_stream.handshake(asio::ssl::stream_base::client);
 
-		//request‚ğì¬‚·‚é
+		//requestã‚’ä½œæˆã™ã‚‹
 		asio::streambuf request;
 		asio_dl_impl::make_request_header(request, server_name, get_command, param);
 
-		//ƒŠƒNƒGƒXƒg‚Ì‘—M
+		//ãƒªã‚¯ã‚¨ã‚¹ãƒˆã®é€ä¿¡
 		asio::write(ssl_stream, request);
 
 		//recieve
@@ -250,7 +258,7 @@ public:
 
 		// Read until EOF, writing data to output as we go.
 		asio::streambuf response;
-		while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*­‚È‚­‚Ä‚à1ƒoƒCƒgóM‚·‚é*/)){
+		while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*å°‘ãªãã¦ã‚‚1ãƒã‚¤ãƒˆå—ä¿¡ã™ã‚‹*/)){
 			out_file << &response;
 		}
 	}
