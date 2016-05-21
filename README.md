@@ -132,3 +132,13 @@ b2 toolset=msvc threading=multi variant=debug,release link=shared runtime-link=s
 b2 toolset=msvc threading=multi variant=debug,release link=static runtime-link=static address-model=64 --stagedir=stage/x64 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
 b2 toolset=msvc threading=multi variant=debug,release link=shared runtime-link=shared address-model=64 --stagedir=stage/x64 -j 4 -s BZIP2_SOURCE=C:/lib/bzip2-1.0.6 -s ZLIB_SOURCE=C:/lib/zlib-1.2.8
 ````
+
+cf.)
+- http://stackoverflow.com/questions/7282645/how-to-build-boost-iostreams-with-gzip-and-bzip2-support-on-windows
+
+# Set Environment Variable(VS only)
+
+required environment variables is below.
+
+- ``BOOST_ROOT``: ``C:\lib\boost_1_61_0``
+- ``OPENSSL_ROOT`` : ``C:\lib\openssl``
