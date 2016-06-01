@@ -22,6 +22,9 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+# Roslyn cache directories
+*.ide/
+
 # Visual Studio 2015 cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
@@ -68,6 +71,8 @@ artifacts/
 *.pidb
 *.svclog
 *.scc
+*.tlog
+*.lastbuildstate
 
 # Chutzpah Test files
 _Chutzpah*
@@ -180,6 +185,7 @@ BundleArtifacts/
 !*.[Cc]ache/
 
 # Others
+sql/
 ClientBin/
 [Ss]tyle[Cc]op.*
 ~$*
@@ -236,6 +242,7 @@ _Pvt_Extensions
 
 # LightSwitch generated files
 GeneratedArtifacts/
+_Pvt_Extensions/
 ModelManifest.xml
 
 # Paket dependency manager
@@ -243,3 +250,49 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# =========================
+# Operating System Files
+# =========================
+
+# OSX
+# =========================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+#other
