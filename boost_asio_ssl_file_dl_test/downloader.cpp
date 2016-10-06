@@ -239,8 +239,10 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 
 	// Read until EOF, writing data to output as we go.
 	asio::streambuf response;
-	while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/)) {
+	boost::system::error_code ec;
+	while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/, ec)) {
 		out_file << &response;
+		if (ec && ec != boost::asio::error::eof) throw boost::system::system_error(ec);
 	}
 }
 
