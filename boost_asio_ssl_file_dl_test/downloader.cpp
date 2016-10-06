@@ -137,11 +137,11 @@ namespace asio_dl_impl {
 	};
 	struct download_responce {
 		std::string http_version;
-		std::uint8_t status_code;
+		std::uint32_t status_code;
 		std::string status_message;
 		explicit operator bool() { return require_redirect(status_code); }
 		bool operator!() { return !require_redirect(status_code); }
-		static constexpr bool require_redirect(std::uint8_t status_code) { return (300 <= status_code && status_code <= 303) || (307 <= status_code && status_code <= 308); }
+		static constexpr bool require_redirect(std::uint32_t status_code) { return (300 <= status_code && status_code <= 303) || (307 <= status_code && status_code <= 308); }
 	};
 	template<typename SyncWriteStream>
 	download_responce check_status(SyncWriteStream& socket)
@@ -155,7 +155,7 @@ namespace asio_dl_impl {
 		std::string http_version;
 		response_stream >> http_version;
 		if ("HTTP/" != http_version.substr(0, 5)) { throw invaid_response(); }
-		unsigned int status_code;
+		std::uint32_t status_code;
 		response_stream >> status_code;
 		std::string status_message;
 		std::getline(response_stream, status_message);
@@ -170,7 +170,6 @@ namespace asio_dl_impl {
 		asio::read_until(socket, response, "\r\n\r\n");
 
 		// Process the response headers.
-		std::string header;
 		std::istream response_stream(&response);
 		parameters re;
 		for (std::string header; std::getline(response_stream, header) && header != "\r";) {
