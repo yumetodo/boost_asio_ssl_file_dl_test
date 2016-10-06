@@ -182,9 +182,16 @@ namespace asio_dl_impl {
 		}
 		return re;
 	}
-	void certificate(asio::ssl::context& context, const std::string& cert_file)
+	void certificate(asio::ssl::context& context, const boost::optional<std::string>& cert_file)
 	{
-		context.load_verify_file(cert_file);
+		if (cert_file) {
+			context.load_verify_file(*cert_file);
+			boost::system::error_code ec;
+			context.set_default_verify_paths(ec);
+		}
+		else {
+			context.set_default_verify_paths();
+		}
 		context.set_verify_mode(asio::ssl::verify_peer);
 		context.set_verify_callback([](bool preverified, asio::ssl::verify_context& ctx) { return verify_certificate_cb(preverified, ctx); });
 	}
@@ -215,7 +222,7 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 	asio::io_service io_service;
 	asio::ssl::context context(io_service, asio::ssl::context::sslv23);
 	asio::ssl::stream<tcp::socket> ssl_stream(io_service, context);
-	if (cert_file_) asio_dl_impl::certificate(context, *cert_file_);
+	asio_dl_impl::certificate(context, cert_file_);
 	asio_dl_impl::connet(ssl_stream.lowest_layer(), io_service, server_name, "https");
 	ssl_stream.handshake(asio::ssl::stream_base::client);
 
