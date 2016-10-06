@@ -296,3 +296,5 @@ Temporary Items
 .apdisk
 
 #other
+*.out
+*.exe
