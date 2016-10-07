@@ -1,7 +1,7 @@
 # Makefile for test.out
 
 TARGET 	= boost_asio_ssl_file_dl_test.out
-SRCS 	= ./boost_asio_ssl_file_dl_test/downloader.cpp ./boost_asio_ssl_file_dl_test/Source.cpp
+SRCS 	= ./boost_asio_ssl_file_dl_test/downloader.cpp ./boost_asio_ssl_file_dl_test/downloader_impl.cpp ./boost_asio_ssl_file_dl_test/Source.cpp
 
 # 基本コマンド
 RM 		?= rm

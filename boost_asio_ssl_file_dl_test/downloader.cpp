@@ -1,47 +1,16 @@
 ﻿#include "downloader.hpp"
+#include "size.hpp"
+#include "downloader_impl.hpp"
 #include <iostream>
 #include <string>
 #include <array>
 #include <unordered_map>
-#include <algorithm>
 #include <boost/asio/ssl.hpp>//require OpenSSL
-#include <boost/algorithm/cxx11/none_of.hpp>
 
-#if defined _MSC_VER && !defined(__clang__)
-#pragma warning( push )
-//C:\lib\boost_1_61_0\boost/iostreams/copy.hpp(128): warning C4244: '引数': 'std::streamsize' から 'int' への変換です。データが失われる可能性があります。
-#pragma warning( disable : 4244 )
-#endif
-#include <boost/iostreams/filtering_streambuf.hpp>
-#include <boost/iostreams/copy.hpp>
-#include <boost/iostreams/filter/zlib.hpp>
-#include <boost/iostreams/filter/gzip.hpp>
-#include <boost/iostreams/filter/bzip2.hpp>
-#if defined _MSC_VER && !defined(__clang__)
-#pragma warning( pop ) 
-#endif
-namespace std_future{
-	template<typename T, std::size_t N>
-	constexpr std::size_t size(const T(&)[N]) { return N; }
-	template <class C> 
-	constexpr auto size(const C& c) -> decltype(c.size()) { return c.size(); }
-}
 namespace asio_dl_impl {
 	namespace asio = boost::asio;
 	using asio::ip::tcp;
 	using parameters = std::unordered_map<std::string, std::string>;
-	template<typename Decompressor>void decompress(std::ostream& os, std::istream& in, Decompressor&& decompressor) {
-		using namespace boost::iostreams;
-		filtering_streambuf<input> tmp;
-		tmp.push(std::forward<Decompressor>(decompressor));
-		tmp.push(in);
-		boost::iostreams::copy(tmp, os);
-	}
-	void decompress_deflated(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::zlib_decompressor()); }
-	//http://www.boost.org/doc/libs/1_62_0/libs/iostreams/doc/classes/gzip.html
-	void decompress_gzip(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::gzip_decompressor()); }
-	//http://www.boost.org/doc/libs/1_62_0/libs/iostreams/doc/classes/bzip2.html
-	void decompress_bzip2(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::bzip2_decompressor()); }
 	template<typename StreamSocketService>
 	void connet(asio::basic_socket<tcp, StreamSocketService>& socket, asio::io_service& io_service, const std::string& host, const std::string& service)
 	{
@@ -57,78 +26,6 @@ namespace asio_dl_impl {
 			socket.close();
 			socket.connect(*endpoint_iterator, error);
 		}
-	}
-	void make_request_header(asio::streambuf& request, const std::string& server_name, const std::string& get_command, const parameters& param)
-	{
-		using namespace std::string_literals;
-		using std::string;
-		using boost::algorithm::none_of;
-		const string sep = ": "s;
-		const string CRLF = "\r\n"s;
-		std::array<string, 6> default_keys{ { "Host"s, "User-Agent"s, "Accept"s, "Accept-Language"s, "Accept-Encoding"s, "Connection"s } };
-		auto concat_key_value = [&default_keys, &sep, &CRLF, &param](std::size_t i, const string& default_value) {
-			return default_keys[i] + sep + ((param.count(default_keys[i])) ? param.at(default_keys[i]) : default_value) + CRLF;
-		};
-
-		std::ostream request_stream(&request);
-		//minimam header
-		request_stream <<
-			"GET " + get_command + " HTTP/1.0" + CRLF
-			+ default_keys[0] + sep + server_name + CRLF
-			+ concat_key_value(1, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0"s)
-			+ concat_key_value(2, "*/*"s)
-			+ concat_key_value(3, "ja,en-US;q=0.7,en;q=0.3"s)
-			+ concat_key_value(4, "gzip, deflate, bzip2"s)
-			+ concat_key_value(5, "close"s);
-		//additional header
-		for (auto&& p : param) if (none_of(default_keys, [&p](const string& s) { return p.first == s; })) request_stream << p.first + sep + p.second + CRLF;
-		//terminate
-		request_stream << CRLF;
-	}
-	class certificate_error : public std::runtime_error {
-	public:
-		explicit certificate_error() : certificate_error("") {}
-		explicit certificate_error(const std::string& s) : std::runtime_error("certificate_error: " + s) {}
-		explicit certificate_error(const char* s) : certificate_error(std::string(s)) {}
-	};
-	bool verify_certificate_cb(bool preverified, boost::asio::ssl::verify_context& ctx)
-	{
-		using std::int32_t;
-		std::cout << "Function : " << __func__ << " ----------------- Line : " << __LINE__ << std::endl;
-		X509_STORE_CTX *cts = ctx.native_handle();
-		X509* cert = X509_STORE_CTX_get_current_cert(ctx.native_handle());
-		std::cout << "CTX ERROR : " << cts->error << std::endl;
-
-		int32_t depth = X509_STORE_CTX_get_error_depth(cts);
-		std::cout << "CTX DEPTH : " << depth << std::endl;
-
-		switch (cts->error)
-		{
-			case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT:
-				throw certificate_error("X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT");
-				break;
-			case X509_V_ERR_CERT_NOT_YET_VALID:
-			case X509_V_ERR_ERROR_IN_CERT_NOT_BEFORE_FIELD:
-				throw certificate_error("Certificate not yet valid!!");
-				break;
-			case X509_V_ERR_CERT_HAS_EXPIRED:
-			case X509_V_ERR_ERROR_IN_CERT_NOT_AFTER_FIELD:
-				throw certificate_error("Certificate expired..");
-				break;
-			case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-				std::cerr << "Self signed certificate in chain!!!" << std::endl;
-				preverified = true;
-				break;
-			default:
-				break;
-		}
-		char subject_name[256];
-		X509_NAME_oneline(X509_get_subject_name(cert), subject_name, static_cast<int>(std_future::size(subject_name)));
-		std::cout
-			<< "Verifying " << subject_name << std::endl
-			<< "Verification status : " << preverified << std::endl
-			<< "Function : " << __func__ << " ----------------- Line : " << __LINE__ << std::endl;
-		return preverified;
 	}
 	class invaid_response : public std::runtime_error {
 	public:
@@ -189,18 +86,36 @@ namespace asio_dl_impl {
 		}
 		return re;
 	}
-	void certificate(asio::ssl::context& context, const boost::optional<std::string>& cert_file)
-	{
-		if (cert_file) {
-			context.load_verify_file(*cert_file);
-			boost::system::error_code ec;
-			context.set_default_verify_paths(ec);
+	template<typename SyncReadStream>
+	void read_body_data(std::ostream& os, SyncReadStream& socket, boost::asio::streambuf& response) {
+		boost::system::error_code ec;
+		// Read until EOF, writing data to output as we go.
+		while (asio::read(socket, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/, ec)) {
+			os << &response;
+			if (ec && ec != boost::asio::error::eof) throw boost::system::system_error(ec);
+		}
+	}
+	template<typename SyncReadStream>
+	void read_and_decompress_data(std::ostream& os, SyncReadStream& socket, boost::asio::streambuf& response, const asio_dl_impl::parameters& header) {
+		if (!header.count("Content-Encoding")) {
+			asio_dl_impl::read_body_data(os, socket, response);
 		}
 		else {
-			context.set_default_verify_paths();
+			const auto content_encoding = asio_dl_impl::to_compress_type(header.at("Content-Encoding"));
+			if (asio_dl_impl::compress_type::identity == content_encoding || asio_dl_impl::compress_type::unknown == content_encoding) {
+				asio_dl_impl::read_body_data(os, socket, response);
+			}
+			else {
+				std::stringstream ss;
+				asio_dl_impl::read_body_data(ss, socket, response);
+				try {
+					asio_dl_impl::decompress(content_encoding, os, ss);
+				}
+				catch (const compress_type_error&) {
+					os << ss.rdbuf();
+				}
+			}
 		}
-		context.set_verify_mode(asio::ssl::verify_peer);
-		context.set_verify_callback([](bool preverified, asio::ssl::verify_context& ctx) { return verify_certificate_cb(preverified, ctx); });
 	}
 }
 
@@ -252,16 +167,10 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 
 	//recieve
 	asio::streambuf response;
-	bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
+	const bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
 	const auto header = asio_dl_impl::read_header(ssl_stream, response);
 	if (!no_redirect) redirect(out_file, header, get_command, param);
-	//Todo: judge Content-Encoding
-	// Read until EOF, writing data to output as we go.
-	boost::system::error_code ec;
-	while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/, ec)) {
-		out_file << &response;
-		if (ec && ec != boost::asio::error::eof) throw boost::system::system_error(ec);
-	}
+	asio_dl_impl::read_and_decompress_data(out_file, ssl_stream, response, header);
 }
 
 void downloader::download_nossl(std::ostream & out_file, const std::string & server_name, const std::string & get_command, const asio_dl_impl::parameters & param)
@@ -282,13 +191,8 @@ void downloader::download_nossl(std::ostream & out_file, const std::string & ser
 	// Read the response status line.
 	//recieve
 	boost::asio::streambuf response;
-	bool no_redirect = !asio_dl_impl::check_status(socket, response);
+	const bool no_redirect = !asio_dl_impl::check_status(socket, response);
 	const auto header = asio_dl_impl::read_header(socket, response);
 	if (!no_redirect) redirect(out_file, header, get_command, param);
-
-	// Read until EOF, writing data to output as we go.
-	//boost::asio::streambuf response;
-	while (asio::read(socket, response, asio::transfer_at_least(1))) {
-		out_file << &response;
-	}
+	asio_dl_impl::read_and_decompress_data(out_file, socket, response, header);
 }
