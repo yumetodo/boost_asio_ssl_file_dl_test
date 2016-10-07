@@ -149,10 +149,9 @@ namespace asio_dl_impl {
 		static constexpr bool require_redirect(std::uint32_t status_code) { return (300 <= status_code && status_code <= 303) || (307 <= status_code && status_code <= 308); }
 	};
 	template<typename SyncWriteStream>
-	download_responce check_status(SyncWriteStream& socket)
+	download_responce check_status(SyncWriteStream& socket, asio::streambuf& response)
 	{
 		// Read the response status line.
-		asio::streambuf response;
 		asio::read_until(socket, response, "\r\n");
 
 		// Check that response is OK.
@@ -168,19 +167,20 @@ namespace asio_dl_impl {
 		return download_responce{ http_version.substr(5), static_cast<std::uint8_t>(status_code), std::move(status_message) };
 	}
 	template<typename SyncWriteStream>
-	parameters read_header(SyncWriteStream& socket)
+	parameters read_header(SyncWriteStream& socket, asio::streambuf& response)
 	{
-		// Read the response headers, which are terminated by a blank line.
-		asio::streambuf response;
+		// Read response headers, which are terminated by a blank line.
+		// Note : read_until over-receive from sockect so that we use only one streambuf.
 		asio::read_until(socket, response, "\r\n\r\n");
 
-		// Process the response headers.
+		// Parse response headers.
 		std::istream response_stream(&response);
 		parameters re;
 		for (std::string header; std::getline(response_stream, header) && header != "\r";) {
 			const auto pos = header.find_first_of(':');
-			const auto value_front = (' ' == header[pos]) ? pos + 1 : pos;
-			std::string value = header.substr(value_front, header.find_last_not_of("\r\n"));
+			const auto value_front = header.find_first_not_of(' ', pos + 1);
+			const auto value_last = header.find_last_not_of("\r\n");
+			std::string value = header.substr(value_front, value_last - value_front);
 			header.erase(pos);
 			re.insert(std::make_pair(std::move(header), std::move(value)));
 		}
@@ -238,12 +238,12 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 	asio::write(ssl_stream, request);
 
 	//recieve
-	bool no_redirect = !asio_dl_impl::check_status(ssl_stream);
-	const auto header = asio_dl_impl::read_header(ssl_stream);
+	asio::streambuf response;
+	bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
+	const auto header = asio_dl_impl::read_header(ssl_stream, response);
 	if (!no_redirect) redirect(out_file, header, get_command, param);
 
 	// Read until EOF, writing data to output as we go.
-	asio::streambuf response;
 	boost::system::error_code ec;
 	while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/, ec)) {
 		out_file << &response;
@@ -268,12 +268,13 @@ void downloader::download_nossl(std::ostream & out_file, const std::string & ser
 
 	// Read the response status line.
 	//recieve
-	bool no_redirect = !asio_dl_impl::check_status(socket);
-	const auto header = asio_dl_impl::read_header(socket);
+	boost::asio::streambuf response;
+	bool no_redirect = !asio_dl_impl::check_status(socket, response);
+	const auto header = asio_dl_impl::read_header(socket, response);
 	if (!no_redirect) redirect(out_file, header, get_command, param);
 
 	// Read until EOF, writing data to output as we go.
-	boost::asio::streambuf response;
+	//boost::asio::streambuf response;
 	while (asio::read(socket, response, asio::transfer_at_least(1))) {
 		out_file << &response;
 	}
