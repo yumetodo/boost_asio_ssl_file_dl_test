@@ -26,6 +26,7 @@ public:
 	void set_certificate_file(std::string&& cert_file) { this->cert_file_ = std::move(cert_file); }
 	void set_certificate_file(const char* cert_file) { this->cert_file_ = cert_file; }
 	void redirect(std::ostream& out_file, const asio_dl_impl::parameters& header, const std::string& get_command, const asio_dl_impl::parameters& param);
+	void download(std::ostream& out_file, const std::string& url, const asio_dl_impl::parameters& param);
 	void download_ssl(std::ostream& out_file, const std::string& server_name, const std::string& get_command, const asio_dl_impl::parameters& param);
 	void download_nossl(std::ostream& out_file, const std::string& server_name, const std::string& get_command, const asio_dl_impl::parameters& param);
 };

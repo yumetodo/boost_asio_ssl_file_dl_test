@@ -203,11 +203,21 @@ namespace asio_dl_impl {
 
 void downloader::redirect(std::ostream & out_file, const asio_dl_impl::parameters & header, const std::string & get_command, const asio_dl_impl::parameters & param) {
 	if (!header.count("Location")) throw asio_dl_impl::invaid_response("Cannot redirect.");
-	std::string service = header.at("Location");
-	const char split_str[] = "://";
-	const auto pos = service.find(split_str);
-	std::string server_name = service.substr(pos + std_future::size(split_str));
-	service.erase(pos);
+	std::string url = header.at("Location");
+	const auto front_pos_get_param = get_command.find_first_of('?');
+	if (std::string::npos != front_pos_get_param) url += get_command.substr(front_pos_get_param);//extend get param (ex. ?hl=ja&ie=UTF-8#)
+	download(out_file, url, param);
+}
+
+void downloader::download(std::ostream & out_file, const std::string & url, const asio_dl_impl::parameters & param)
+{
+	constexpr char split_str[] = "://";
+	const auto last_pos_service = url.find(split_str);
+	const auto front_pos_server_name = last_pos_service + std_future::size(split_str) - 1;
+	const auto front_pos_get_command = url.find_first_of('/', front_pos_server_name);
+	const std::string service = url.substr(0, last_pos_service);
+	const std::string server_name = url.substr(front_pos_server_name, front_pos_get_command - front_pos_server_name);
+	const std::string get_command = url.substr(front_pos_get_command);
 	if ("http" == service) {
 		download_nossl(out_file, server_name, get_command, param);
 	}
