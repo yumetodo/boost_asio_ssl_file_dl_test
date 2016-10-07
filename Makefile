@@ -27,9 +27,6 @@ PLATFORM = $(shell uname)
 # debug
 .PHONY: Debug
 Debug: CXXFLAGS+=$(CXX_DEBUG_FLAGS)
-ifdef USE_COVERAGE
-Debug: CXXFLAGS+=$(COVERAGE_OPTION)
-endif
 Debug: CONFIGURATION=Debug
 Debug: all
 # release
