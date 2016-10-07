@@ -16,6 +16,7 @@
 #include <boost/iostreams/copy.hpp>
 #include <boost/iostreams/filter/zlib.hpp>
 #include <boost/iostreams/filter/gzip.hpp>
+#include <boost/iostreams/filter/bzip2.hpp>
 #if defined _MSC_VER && !defined(__clang__)
 #pragma warning( pop ) 
 #endif
@@ -37,8 +38,10 @@ namespace asio_dl_impl {
 		boost::iostreams::copy(tmp, os);
 	}
 	void decompress_deflated(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::zlib_decompressor()); }
-	//http://www.boost.org/doc/libs/1_42_0/libs/iostreams/doc/classes/gzip.html
+	//http://www.boost.org/doc/libs/1_62_0/libs/iostreams/doc/classes/gzip.html
 	void decompress_gzip(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::gzip_decompressor()); }
+	//http://www.boost.org/doc/libs/1_62_0/libs/iostreams/doc/classes/bzip2.html
+	void decompress_bzip2(std::ostream& os, std::istream& in) { decompress(os, in, boost::iostreams::bzip2_decompressor()); }
 	template<typename StreamSocketService>
 	void connet(asio::basic_socket<tcp, StreamSocketService>& socket, asio::io_service& io_service, const std::string& host, const std::string& service)
 	{
@@ -75,7 +78,7 @@ namespace asio_dl_impl {
 			+ concat_key_value(1, "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:46.0) Gecko/20100101 Firefox/46.0"s)
 			+ concat_key_value(2, "*/*"s)
 			+ concat_key_value(3, "ja,en-US;q=0.7,en;q=0.3"s)
-			+ concat_key_value(4, "gzip, deflate"s)
+			+ concat_key_value(4, "gzip, deflate, bzip2"s)
 			+ concat_key_value(5, "close"s);
 		//additional header
 		for (auto&& p : param) if (none_of(default_keys, [&p](const string& s) { return p.first == s; })) request_stream << p.first + sep + p.second + CRLF;
@@ -138,7 +141,7 @@ namespace asio_dl_impl {
 		explicit status_error(const std::string& s) : std::runtime_error(s) {}
 		explicit status_error(const char* s) : std::runtime_error(s) {}
 		explicit status_error(unsigned int status_code, const std::string& s)
-			: status_error("Response returned with status code:" + std::to_string(status_code) + '(' + s + ").") {}
+			: status_error("Response returned with status code:" + std::to_string(status_code) + "(" + s + ").") {}
 	};
 	struct download_responce {
 		std::string http_version;
@@ -252,7 +255,7 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 	bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
 	const auto header = asio_dl_impl::read_header(ssl_stream, response);
 	if (!no_redirect) redirect(out_file, header, get_command, param);
-
+	//Todo: judge Content-Encoding
 	// Read until EOF, writing data to output as we go.
 	boost::system::error_code ec;
 	while (asio::read(ssl_stream, response, asio::transfer_at_least(1)/*少なくても1バイト受信する*/, ec)) {
