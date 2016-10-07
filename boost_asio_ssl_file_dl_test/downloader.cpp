@@ -19,7 +19,12 @@
 #if defined _MSC_VER && !defined(__clang__)
 #pragma warning( pop ) 
 #endif
-
+namespace std_future{
+	template<typename T, std::size_t N>
+	constexpr std::size_t size(const T(&)[N]) { return N; }
+	template <class C> 
+	constexpr auto size(const C& c) -> decltype(c.size()) { return c.size(); }
+}
 namespace asio_dl_impl {
 	namespace asio = boost::asio;
 	using asio::ip::tcp;
@@ -115,7 +120,7 @@ namespace asio_dl_impl {
 				break;
 		}
 		char subject_name[256];
-		X509_NAME_oneline(X509_get_subject_name(cert), subject_name, static_cast<int>(std::size(subject_name)));
+		X509_NAME_oneline(X509_get_subject_name(cert), subject_name, static_cast<int>(std_future::size(subject_name)));
 		std::cout
 			<< "Verifying " << subject_name << std::endl
 			<< "Verification status : " << preverified << std::endl
@@ -201,7 +206,7 @@ void downloader::redirect(std::ostream & out_file, const asio_dl_impl::parameter
 	std::string service = header.at("Location");
 	const char split_str[] = "://";
 	const auto pos = service.find(split_str);
-	std::string server_name = service.substr(pos + std::size(split_str));
+	std::string server_name = service.substr(pos + std_future::size(split_str));
 	service.erase(pos);
 	if ("http" == service) {
 		download_nossl(out_file, server_name, get_command, param);

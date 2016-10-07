@@ -13,9 +13,11 @@ CXX_DEBUG_FLAGS		=	-g -O0 -Wall -Wextra
 CXX_RELEASE_FLAGS	=	-O2 -Wall -Wextra
 
 # 基本オプション
-CPPFLAGS = -std=c++1z -lssl -lcrypto -lboost_system-mt -lboost_iostreams-mt -lboost_thread-mt -lz
+CPPFLAGS = -std=c++1z -lssl -lcrypto -lz
 ifeq ($(OS),Windows_NT)
-	CPPFLAGS += -DBOOST_USE_WINDOWS_H -lWs2_32
+	CPPFLAGS += -DBOOST_USE_WINDOWS_H -lboost_system-mt -lboost_iostreams-mt -lboost_thread-mt -lWs2_32
+else
+	CPPFLAGS += -lboost_system -lboost_iostreams -lpthread
 endif
 
 CONFIGURATION = unknown
