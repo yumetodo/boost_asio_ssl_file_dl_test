@@ -4,25 +4,33 @@
 #include <boost/asio/ssl.hpp>//require OpenSSL
 #include <boost/iostreams/filtering_streambuf.hpp>
 #if defined _MSC_VER && !defined(__clang__)
-#pragma warning( push )
+#	pragma warning( push )
 //C:\lib\boost_1_61_0\boost/iostreams/copy.hpp(128): warning C4244: '引数': 'std::streamsize' から 'int' への変換です。データが失われる可能性があります。
-#pragma warning( disable : 4244 )
+#	pragma warning( disable : 4244 )
 #endif
 #include <boost/iostreams/copy.hpp>
 #if defined _MSC_VER && !defined(__clang__)
-#pragma warning( pop ) 
+#	pragma warning( pop ) 
+#endif
+#if defined _MSC_VER && !defined(__clang__)
+#	pragma warning( push )
+//c:\lib\boost_1_61_0\boost\iostreams\detail\streambuf\indirect_streambuf.hpp(108): warning C4702: 制御が渡らないコードです。
+#	pragma warning( disable : 4702 )
 #endif
 #include <boost/iostreams/filter/zlib.hpp>
 #if defined _MSC_VER && !defined(__clang__)
-#pragma warning( push )
+#	pragma warning( pop ) 
+#endif
+#if defined _MSC_VER && !defined(__clang__)
+#	pragma warning( push )
 //c:\lib\boost_1_61_0\boost\iostreams\filter\gzip.hpp(508): warning C4456: 'c' を宣言すると、以前のローカル宣言が隠蔽されます
-#pragma warning( disable : 4456 )
+#	pragma warning( disable : 4456 )
 //c:\lib\boost_1_61_0\boost\iostreams\filter\gzip.hpp(463): warning C4458: 'traits_type' を宣言すると、クラス メンバーが隠蔽されます
-#pragma warning( disable : 4458 )
+#	pragma warning( disable : 4458 )
 #endif
 #include <boost/iostreams/filter/gzip.hpp>
 #if defined _MSC_VER && !defined(__clang__)
-#pragma warning( pop ) 
+#	pragma warning( pop ) 
 #endif
 #include <boost/iostreams/filter/bzip2.hpp>
 #include <boost/algorithm/cxx11/none_of.hpp>
