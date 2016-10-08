@@ -145,7 +145,7 @@ namespace asio_dl_impl {
 		//build string
 		bool is_first = true;
 		for (auto& pa : holder) {
-			if (std::exchange(is_first, !is_first)) re += '&';
+			if (!std::exchange(is_first, false)) re += '&';
 			re += pa.first + '=' + pa.second;
 		}
 		return re;
