@@ -6,7 +6,7 @@
 #include <array>
 #include <unordered_map>
 #include <boost/asio/ssl.hpp>//require OpenSSL
-
+#include "../3rd_party/string_split/include/string_split.hpp"
 namespace asio_dl_impl {
 	namespace asio = boost::asio;
 	using asio::ip::tcp;
@@ -117,8 +117,37 @@ namespace asio_dl_impl {
 			}
 		}
 	}
-	std::string combine_get_param(const std::string& s1, const std::string& s2) {
-
+	void insert_get_param(std::unordered_map<std::string, std::string>& holder, const std::string& param) {
+		for (size_t i = 0; i < param.size() / 4; ++i) {//returnでの脱出が正規
+			std::string tmp;
+			try {
+				tmp = param | split('&')[i];
+			}
+			catch (const std::out_of_range&) {
+				return;
+			}
+			auto&& tmp_value = tmp | split('=')[1];
+			auto insert_re = holder.emplace(tmp | split('=')[0], tmp_value);
+			if (!insert_re.second) {
+				insert_re.first->second = std::move(tmp_value);
+			}
+		}
+		throw std::invalid_argument("param is iregal.");
+	}
+	std::string combine_get_param(const std::string& old_param, const std::string& new_param) {
+		if (old_param.empty()) return new_param;
+		else if (new_param.empty()) return old_param;
+		std::unordered_map<std::string, std::string> holder;
+		insert_get_param(holder, old_param);
+		insert_get_param(holder, new_param);
+		std::string re;
+		//build string
+		bool is_first = true;
+		for (auto& pa : holder) {
+			if (std::exchange(is_first, !is_first)) re += '&';
+			re += pa.first + '=' + pa.second;
+		}
+		return re;
 	}
 }
 
@@ -134,7 +163,7 @@ void downloader::redirect(std::ostream & out_file, const asio_dl_impl::parameter
 		else {
 			const std::string url_get_param = url.substr(front_pos_url + 1);
 			url.erase(front_pos_url);
-			url += '?' + asio_dl_impl::combine_get_param(url_get_param, get_command.substr(front_pos_get_command + 1));
+			url += '?' + asio_dl_impl::combine_get_param(get_command.substr(front_pos_get_command + 1), url_get_param);
 		}
 	}
 	download(out_file, url, param);
