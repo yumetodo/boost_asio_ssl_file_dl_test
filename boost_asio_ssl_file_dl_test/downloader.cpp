@@ -170,8 +170,9 @@ void downloader::download_ssl(std::ostream & out_file, const std::string & serve
 
 	//recieve
 	asio::streambuf response;
-	const bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
+	bool no_redirect = !asio_dl_impl::check_status(ssl_stream, response);
 	const auto header = asio_dl_impl::read_header(ssl_stream, response);
+	if (header.count("Location")) no_redirect = false;
 	if (!no_redirect) redirect(out_file, header, get_command, param);
 	asio_dl_impl::read_and_decompress_data(out_file, ssl_stream, response, header);
 }
@@ -194,8 +195,9 @@ void downloader::download_nossl(std::ostream & out_file, const std::string & ser
 	// Read the response status line.
 	//recieve
 	boost::asio::streambuf response;
-	const bool no_redirect = !asio_dl_impl::check_status(socket, response);
+	bool no_redirect = !asio_dl_impl::check_status(socket, response);
 	const auto header = asio_dl_impl::read_header(socket, response);
+	if (header.count("Location")) no_redirect = false;
 	if (!no_redirect) redirect(out_file, header, get_command, param);
 	asio_dl_impl::read_and_decompress_data(out_file, socket, response, header);
 }
