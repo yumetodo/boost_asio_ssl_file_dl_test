@@ -80,7 +80,7 @@ namespace asio_dl_impl {
 			const auto pos = header.find_first_of(':');
 			const auto value_front = header.find_first_not_of(' ', pos + 1);
 			const auto value_last = header.find_last_not_of("\r\n");
-			std::string value = header.substr(value_front, value_last - value_front);
+			std::string value = header.substr(value_front, value_last - value_front + 1);
 			header.erase(pos);
 			re.insert(std::make_pair(std::move(header), std::move(value)));
 		}
