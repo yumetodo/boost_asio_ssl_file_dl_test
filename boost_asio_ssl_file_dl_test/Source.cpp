@@ -14,18 +14,16 @@
 int main()
 {
 	{
+		std::cout << "SSL Test" << std::endl;
 		downloader()
-			//.download_ssl(
-			//	std::cout, 
-			//	"gist.githubusercontent.com", 
-			//	"/yumetodo/3515d60ff3743d57ac58/raw/2f94b4e7a0bfe979b4d45588dfdccdc33eb1ee2d/CMakelists_Boost_asio_cpp11_buffers_reference_counted.txt", 
-			//	{}
-			//);
 		.download(
 			std::cout, 
 			"https://gist.githubusercontent.com/yumetodo/3515d60ff3743d57ac58/raw/2f94b4e7a0bfe979b4d45588dfdccdc33eb1ee2d/CMakelists_Boost_asio_cpp11_buffers_reference_counted.txt", 
 			{}
 		);
+		std::cout << "Redirect Test" << std::endl;
+		std::ofstream out("out.html");
+		downloader().download(out, "http://www.google.com/", {});
 	}
 	//{
 	//	std::string server_name = "demo.lizardtech.com";
