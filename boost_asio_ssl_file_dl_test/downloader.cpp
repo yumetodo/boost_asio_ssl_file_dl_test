@@ -117,15 +117,25 @@ namespace asio_dl_impl {
 			}
 		}
 	}
+	std::string combine_get_param(const std::string& s1, const std::string& s2) {
+
+	}
 }
 
 void downloader::redirect(std::ostream & out_file, const asio_dl_impl::parameters & header, const std::string & get_command, const asio_dl_impl::parameters & param) {
 	if (!header.count("Location")) throw asio_dl_impl::invaid_response("Cannot redirect.");
 	std::string url = header.at("Location");
-	const auto front_pos_get_param = get_command.find_first_of('?');
-	if (std::string::npos != front_pos_get_param) {
-		url += ((std::string::npos != url.find_first_of('?')) ? '&' : '?');
-		url += get_command.substr(front_pos_get_param + 1);//extend get param (ex. ?hl=ja&ie=UTF-8#)
+	const auto front_pos_get_command = get_command.find_first_of('?');
+	if (std::string::npos != front_pos_get_command) {
+		const auto front_pos_url = url.find_first_of('?');
+		if (std::string::npos == front_pos_url) {
+			url += get_command.substr(front_pos_get_command);//extend get param (ex. ?hl=ja&ie=UTF-8#)
+		}
+		else {
+			const std::string url_get_param = url.substr(front_pos_url + 1);
+			url.erase(front_pos_url);
+			url += '?' + asio_dl_impl::combine_get_param(url_get_param, get_command.substr(front_pos_get_command + 1));
+		}
 	}
 	download(out_file, url, param);
 }
