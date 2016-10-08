@@ -123,7 +123,10 @@ void downloader::redirect(std::ostream & out_file, const asio_dl_impl::parameter
 	if (!header.count("Location")) throw asio_dl_impl::invaid_response("Cannot redirect.");
 	std::string url = header.at("Location");
 	const auto front_pos_get_param = get_command.find_first_of('?');
-	if (std::string::npos != front_pos_get_param) url += get_command.substr(front_pos_get_param);//extend get param (ex. ?hl=ja&ie=UTF-8#)
+	if (std::string::npos != front_pos_get_param) {
+		url += ((std::string::npos != url.find_first_of('?')) ? '&' : '?');
+		url += get_command.substr(front_pos_get_param + 1);//extend get param (ex. ?hl=ja&ie=UTF-8#)
+	}
 	download(out_file, url, param);
 }
 
