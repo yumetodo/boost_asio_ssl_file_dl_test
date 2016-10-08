@@ -137,6 +137,7 @@ namespace asio_dl_impl {
 	std::string combine_get_param(const std::string& old_param, const std::string& new_param) {
 		if (old_param.empty()) return new_param;
 		else if (new_param.empty()) return old_param;
+		else if (old_param == new_param) return new_param;
 		std::unordered_map<std::string, std::string> holder;
 		insert_get_param(holder, old_param);
 		insert_get_param(holder, new_param);
