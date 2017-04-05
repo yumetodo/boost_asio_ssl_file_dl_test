@@ -16,6 +16,8 @@
 #	pragma warning( push )
 //c:\lib\boost_1_61_0\boost\iostreams\detail\streambuf\indirect_streambuf.hpp(108): warning C4702: 制御が渡らないコードです。
 #	pragma warning( disable : 4702 )
+//d:\lib\boost_1_63_0\boost\iostreams\filter\zlib.hpp(384) : warning C4706 : 条件式の比較値は、代入の結果になっています。
+#	pragma warning( disable : 4706 )
 #endif
 #include <boost/iostreams/filter/zlib.hpp>
 #if defined _MSC_VER && !defined(__clang__)
