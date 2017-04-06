@@ -1546,7 +1546,7 @@ foreach(COMPONENT ${Boost_FIND_COMPONENTS})
   endforeach()
   message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                  "_boost_RELEASE_NAMES: ${_boost_RELEASE_NAMES}")
-  set(_boost_RELEASE_NAMES
+  list(APPEND _boost_RELEASE_NAMES
     ${Boost_LIB_PREFIX}${Boost_NAMESPACE}_${COMPONENT}${_boost_MULTITHREADED}${_boost_RELEASE_ABI_TAG}-${Boost_LIB_VERSION}
     ${Boost_LIB_PREFIX}${Boost_NAMESPACE}_${COMPONENT}${_boost_MULTITHREADED}${_boost_RELEASE_ABI_TAG}
     ${Boost_LIB_PREFIX}${Boost_NAMESPACE}_${COMPONENT} )
