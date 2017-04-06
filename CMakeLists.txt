@@ -32,6 +32,11 @@ find_package(Threads REQUIRED)
 
 # find Boost
 # https://cmake.org/cmake/help/v3.7/module/FindBoost.html
+if(${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION} LESS 3.8)
+    set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/cmake/modules)
+    include(FindBoost)
+    message(STATUS "FindBoost: commit fb3f6fd3fe8eb2ebef26c6fa20624f32ee272760 is used.")
+endif()
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_STATIC_RUNTIME OFF)
